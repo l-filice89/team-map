@@ -1,0 +1,2 @@
+[functions.locations]
+verify_jwt = false

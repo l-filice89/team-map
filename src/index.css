@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 258 71% 12%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 258 71% 12%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 258 71% 12%;
+    
+    --primary: 257 77% 64%;
+    --primary-600: 257 76% 58%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 258 71% 12%;
+    
+    --muted: 240 5% 96%;
+    --muted-foreground: 257 21% 70%;
+    
+    --accent: 166 67% 49%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 257 77% 64%;
+    
+    --radius: 0.75rem;
+    
+    --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  }
+
+  .dark {
+    --background: 258 54% 8%;
+    --foreground: 257 23% 93%;
+    
+    --card: 258 42% 11%;
+    --card-foreground: 257 23% 93%;
+    
+    --popover: 258 42% 11%;
+    --popover-foreground: 257 23% 93%;
+    
+    --primary: 257 77% 64%;
+    --primary-600: 257 76% 58%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 258 42% 11%;
+    --secondary-foreground: 257 23% 93%;
+    
+    --muted: 258 42% 11%;
+    --muted-foreground: 257 21% 70%;
+    
+    --accent: 166 67% 49%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 258 35% 20%;
+    --input: 258 35% 20%;
+    --ring: 257 77% 64%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
