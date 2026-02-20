@@ -1,5 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
+
+/** Maximum length for location label (enforced in validation and documented in README). */
+const LABEL_MAX_LENGTH = 100;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -51,8 +54,8 @@ function validateLocationInput(body: any): { lat: number; lng: number; label?: s
     return { error: 'Invalid longitude. Must be a number between -180 and 180.' };
   }
 
-  if (label !== undefined && (typeof label !== 'string' || label.length > 255)) {
-    return { error: 'Invalid label. Must be a string with max 255 characters.' };
+  if (label !== undefined && (typeof label !== 'string' || label.length > LABEL_MAX_LENGTH)) {
+    return { error: `Invalid label. Must be a string with max ${LABEL_MAX_LENGTH} characters.` };
   }
 
   return { lat, lng, label: label || undefined };
@@ -276,9 +279,8 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('[locations] Error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
-      JSON.stringify({ error: 'Internal server error.', details: errorMessage }),
+      JSON.stringify({ error: 'Internal server error.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

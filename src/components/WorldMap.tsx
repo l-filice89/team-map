@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { escapeHtml } from "@/lib/escapeHtml";
 import { formatRelativeTime } from "@/lib/timeUtils";
 import { cn } from "@/lib/utils";
 import { createRoot } from "react-dom/client";
@@ -11,7 +12,7 @@ import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: markerIcon,
   iconRetinaUrl: markerIcon2x,
@@ -47,7 +48,14 @@ interface WorldMapProps {
   theme?: string;
 }
 
-export function WorldMap({ markers, temporaryLocation, className, onMarkerClick, loading, theme = 'light' }: WorldMapProps) {
+export function WorldMap({
+  markers,
+  temporaryLocation,
+  className,
+  onMarkerClick,
+  loading,
+  theme = "light",
+}: WorldMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
@@ -57,7 +65,10 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
-    console.log('[WorldMap] Initializing map, container:', mapContainer.current);
+    console.log(
+      "[WorldMap] Initializing map, container:",
+      mapContainer.current
+    );
 
     // Create map
     map.current = L.map(mapContainer.current, {
@@ -66,7 +77,7 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
       zoomControl: true,
     });
 
-    console.log('[WorldMap] Map initialized:', map.current);
+    console.log("[WorldMap] Map initialized:", map.current);
 
     // Create markers layer
     markersLayer.current = L.layerGroup().addTo(map.current);
@@ -83,8 +94,10 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
   useEffect(() => {
     if (!map.current) return;
 
-    const lightTileUrl = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
-    const darkTileUrl = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+    const lightTileUrl =
+      "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+    const darkTileUrl =
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
 
     // Remove existing tile layers
     map.current.eachLayer((layer) => {
@@ -95,14 +108,22 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
 
     // Add new tile layer
     L.tileLayer(theme === "dark" ? darkTileUrl : lightTileUrl, {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map.current);
   }, [theme]);
 
   // Update markers
   useEffect(() => {
-    console.log('[WorldMap] Markers update effect - map:', !!map.current, 'markersLayer:', !!markersLayer.current, 'markers count:', markers.length);
-    
+    console.log(
+      "[WorldMap] Markers update effect - map:",
+      !!map.current,
+      "markersLayer:",
+      !!markersLayer.current,
+      "markers count:",
+      markers.length
+    );
+
     if (!map.current || !markersLayer.current) return;
 
     // Clear existing markers
@@ -113,16 +134,16 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
       return;
     }
 
-    console.log('[WorldMap] Adding markers:', markers);
+    console.log("[WorldMap] Adding markers:", markers);
 
     // Add markers
     markers.forEach((marker) => {
       const leafletMarker = L.marker([marker.lat, marker.lng]);
 
       // Create popup content
-      const popupDiv = document.createElement('div');
-      popupDiv.className = 'p-2 min-w-[200px]';
-      
+      const popupDiv = document.createElement("div");
+      popupDiv.className = "p-2 min-w-[200px]";
+
       const initials = marker.user.fullName
         .split(" ")
         .map((n) => n[0])
@@ -130,35 +151,49 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
         .toUpperCase()
         .slice(0, 2);
 
+      const safeFullName = escapeHtml(marker.user.fullName);
+      const safeEmail = escapeHtml(marker.user.email ?? "");
+      const safeLabel = marker.label ? escapeHtml(marker.label) : "";
+      const safeInitials = escapeHtml(initials);
+      const safeUpdatedAt = escapeHtml(formatRelativeTime(marker.updatedAt));
+
       popupDiv.innerHTML = `
         <div class="flex items-center gap-3 mb-2">
           <div class="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-xs font-medium">
-            ${initials}
+            ${safeInitials}
           </div>
           <div class="flex-1 min-w-0">
             <p class="font-semibold text-sm text-foreground leading-tight mb-0.5">
-              ${marker.user.fullName}
+              ${safeFullName}
             </p>
-            ${marker.user.email ? `
+            ${
+              marker.user.email
+                ? `
               <p class="text-xs text-muted-foreground truncate">
-                ${marker.user.email}
+                ${safeEmail}
               </p>
-            ` : ''}
+            `
+                : ""
+            }
           </div>
         </div>
-        ${marker.label ? `
+        ${
+          safeLabel
+            ? `
           <p class="text-sm text-foreground mb-1">
-            📍 ${marker.label}
+            📍 ${safeLabel}
           </p>
-        ` : ''}
+        `
+            : ""
+        }
         <p class="text-xs text-muted-foreground">
-          Updated ${formatRelativeTime(marker.updatedAt)}
+          Updated ${safeUpdatedAt}
         </p>
       `;
 
       leafletMarker.bindPopup(popupDiv);
-      
-      leafletMarker.on('click', () => {
+
+      leafletMarker.on("click", () => {
         onMarkerClick?.(marker);
       });
 
@@ -184,7 +219,7 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
 
     // Create custom icon for temporary pin (distinct visual style)
     const temporaryIcon = L.divIcon({
-      className: 'temporary-marker',
+      className: "temporary-marker",
       html: `
         <div style="
           position: relative;
@@ -222,9 +257,12 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
     });
 
     // Create temporary marker (no popup on click)
-    temporaryMarker.current = L.marker([temporaryLocation.lat, temporaryLocation.lng], {
-      icon: temporaryIcon,
-    });
+    temporaryMarker.current = L.marker(
+      [temporaryLocation.lat, temporaryLocation.lng],
+      {
+        icon: temporaryIcon,
+      }
+    );
 
     temporaryMarker.current.addTo(map.current);
 
@@ -236,10 +274,16 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
   }, [temporaryLocation]);
 
   return (
-    <div className={cn("relative w-full rounded-lg overflow-hidden border", className)} style={{ height: '500px' }}>
+    <div
+      className={cn(
+        "relative w-full rounded-lg overflow-hidden border",
+        className
+      )}
+      style={{ height: "500px" }}
+    >
       {/* Always render the map container so it can initialize properly */}
       <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
-      
+
       {/* Show loading overlay */}
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-[1000] pointer-events-none">
@@ -249,12 +293,14 @@ export function WorldMap({ markers, temporaryLocation, className, onMarkerClick,
           </div>
         </div>
       )}
-      
+
       {/* Show empty state overlay when no markers and no temporary location */}
       {!loading && markers.length === 0 && !temporaryLocation && (
         <div className="absolute inset-0 flex items-center justify-center bg-muted/50 z-[1000] pointer-events-none">
           <div className="text-center p-8">
-            <p className="text-lg font-medium text-foreground mb-2">No locations yet</p>
+            <p className="text-lg font-medium text-foreground mb-2">
+              No locations yet
+            </p>
             <p className="text-sm text-muted-foreground">
               Team members' locations will appear here once they check in
             </p>

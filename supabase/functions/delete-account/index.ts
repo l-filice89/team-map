@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.87.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -119,7 +119,7 @@ serve(async (req) => {
   } catch (err) {
     console.error("[delete-account] Error:", err);
     return new Response(
-      JSON.stringify({ error: "An unexpected error occurred." }),
+      JSON.stringify({ error: "Internal server error." }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -68,15 +68,20 @@ The application will be available at `http://localhost:8080`.
 
 All optional branding and behavior is controlled by environment variables (see `.env.example`).
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `VITE_APP_NAME` | App name (header, title, footer) | `Team Map` |
-| `VITE_ALLOWED_EMAIL_DOMAINS` | Comma-separated email domains for sign-in (e.g. `company.com,other.com`). If empty, sign-in is restricted. | (empty) |
-| `VITE_LOGO_URL` | Logo image path or URL | `/logo.svg` |
-| `VITE_FAVICON_URL` | Favicon path or URL | `/favicon.ico` |
-| `VITE_SHOW_INTERNAL_TOOL_LABEL` | Set to `true` to show "Internal tool" in Hero, Footer, and SignIn | `false` |
+| Variable                        | Description                                                                                                | Default        |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------- | -------------- |
+| `VITE_APP_NAME`                 | App name (header, title, footer)                                                                           | `Team Map`     |
+| `VITE_ALLOWED_EMAIL_DOMAINS`    | Comma-separated email domains for sign-in (e.g. `company.com,other.com`). If empty, sign-in is restricted. | (empty)        |
+| `VITE_LOGO_URL`                 | Logo image path or URL                                                                                     | `/logo.svg`    |
+| `VITE_FAVICON_URL`              | Favicon path or URL                                                                                        | `/favicon.ico` |
+| `VITE_SHOW_INTERNAL_TOOL_LABEL` | Set to `true` to show "Internal tool" in Hero, Footer, and SignIn                                          | `false`        |
 
 Replace `public/logo.svg` and `public/favicon.ico` with your own assets, or set `VITE_LOGO_URL` and `VITE_FAVICON_URL` to point to your files.
+
+## Security / Secrets
+
+- **Never commit `.env`.** It is gitignored; use `.env.example` as the template.
+- **Never put the Supabase service role key in the frontend or in any `VITE_*` variable.** The frontend uses only the anon (publishable) key. The service role key is used only in Edge Functions via `Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")`, which Supabase injects at runtime.
 
 ## Supabase Setup
 
@@ -97,6 +102,7 @@ Apply all migrations in the `supabase/migrations/` directory in order:
 5. `20251107161249_6dfa3ab2-333e-4bb7-8ab0-2bbcb26bf78f.sql` - Creates avatars storage bucket
 
 You can apply these migrations using:
+
 - **Supabase Dashboard**: Go to SQL Editor and run each migration file
 - **Supabase CLI**: `supabase db push` (if using local development)
 
@@ -109,9 +115,16 @@ supabase functions deploy locations
 ```
 
 Or use the Supabase Dashboard:
+
 1. Go to Edge Functions
 2. Create a new function named `locations`
 3. Copy the contents of `supabase/functions/locations/index.ts`
+
+**Locations API:** Location labels are limited to **100 characters** (enforced by the `locations` Edge Function). The frontend can enforce the same limit for better UX.
+
+**CORS:** For production, configure allowed origins for Edge Functions in Supabase (e.g. Project Settings > API or Edge Functions). Use a restricted origin list instead of allowing all origins.
+
+**Edge function runtime:** The `locations` and `delete-account` functions use Deno std `0.208.0` and `@supabase/supabase-js@2.87.1` (via esm.sh). See the imports in `supabase/functions/*/index.ts` for the exact versions in use.
 
 ### 4. Configure Authentication
 
@@ -123,6 +136,7 @@ Or use the Supabase Dashboard:
 ### 5. Verify Storage Bucket
 
 After running the migrations, verify that the `avatars` storage bucket exists:
+
 1. Go to Storage in Supabase Dashboard
 2. Ensure the `avatars` bucket exists and is public
 
@@ -156,6 +170,7 @@ Vercel will automatically install dependencies, build, and deploy. The `vercel.j
 ### 5. Update Supabase Redirect URLs
 
 After deployment, update your Supabase authentication settings:
+
 1. Go to Authentication > URL Configuration
 2. Add your Vercel deployment URL to "Redirect URLs"
 3. Add your Vercel deployment URL to "Site URL"
@@ -236,6 +251,10 @@ Husky runs hooks on commit and push. After `npm install`, hooks are installed au
 - `npm run test:e2e` - Run E2E tests
 - `npm run test:e2e:ui` - Run E2E tests with UI
 - `npm run test:e2e:headed` - Run E2E tests (headed)
+
+## Dependency security
+
+Run `npm audit` periodically. Some advisories require major upgrades (e.g. ESLint 10, typescript-eslint 8.x, Vitest 4) and are planned for a follow-up; apply `npm audit fix` for non-breaking fixes.
 
 ## License
 
