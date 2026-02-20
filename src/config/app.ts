@@ -47,27 +47,37 @@ export const showInternalToolLabel = parseBoolean(
 
 export const themeStorageKey = `${slug(appName)}-theme`;
 
-export function getDomainRestrictionMessage(): string {
-  if (allowedDomains.length === 0) {
+/** Pure helper for testing: domain restriction message given a list of domains. */
+export function getDomainRestrictionMessageFor(domains: string[]): string {
+  if (domains.length === 0) {
     return "Sign-in is restricted. Contact your administrator.";
   }
-  if (allowedDomains.length === 1) {
-    return `Only @${allowedDomains[0]} accounts are allowed.`;
+  if (domains.length === 1) {
+    return `Only @${domains[0]} accounts are allowed.`;
   }
-  const last = allowedDomains[allowedDomains.length - 1];
-  const rest = allowedDomains.slice(0, -1);
+  const last = domains[domains.length - 1];
+  const rest = domains.slice(0, -1);
   const list = rest.map((d) => `@${d}`).join(", ") + " and @" + last;
   return `Only ${list} accounts are allowed.`;
 }
 
-/** Short sign-in prompt for landing/sign-in page. */
-export function getSignInPrompt(): string {
-  if (allowedDomains.length === 0) {
+export function getDomainRestrictionMessage(): string {
+  return getDomainRestrictionMessageFor(allowedDomains);
+}
+
+/** Pure helper for testing: sign-in prompt given a list of domains. */
+export function getSignInPromptFor(domains: string[]): string {
+  if (domains.length === 0) {
     return "Sign in with your work email.";
   }
-  if (allowedDomains.length === 1) {
-    return `Sign in with your @${allowedDomains[0]} email.`;
+  if (domains.length === 1) {
+    return `Sign in with your @${domains[0]} email.`;
   }
-  const list = allowedDomains.map((d) => `@${d}`).join(" or ");
+  const list = domains.map((d) => `@${d}`).join(" or ");
   return `Sign in with your ${list} email.`;
+}
+
+/** Short sign-in prompt for landing/sign-in page. */
+export function getSignInPrompt(): string {
+  return getSignInPromptFor(allowedDomains);
 }

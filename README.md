@@ -181,8 +181,38 @@ team-map/
 │   ├── migrations/      # Database migrations
 │   └── config.toml     # Supabase configuration
 ├── public/              # Static assets (logo, favicon)
+├── test/
+│   ├── setup.ts         # Vitest setup (jest-dom)
+│   ├── unit/            # Unit tests (mirrors src/)
+│   └── e2e/             # Playwright E2E tests
 └── vercel.json          # Vercel deployment configuration
 ```
+
+## Testing
+
+Test output (reports, coverage, and E2E screenshot snapshots) is **not versioned**. Run tests locally to generate any artifacts you need.
+
+### Unit tests (Vitest)
+
+- `npm run test` - Run unit tests in watch mode
+- `npm run test:run` - Run unit tests once
+- `npm run test:coverage` - Run unit tests with coverage report
+
+Unit tests live under `test/unit/`, mirroring `src/` (e.g. `test/unit/lib/distance.test.ts` for `src/lib/distance.ts`).
+
+### E2E tests (Playwright)
+
+- `npm run test:e2e` - Run E2E tests (starts the dev server automatically)
+- `npm run test:e2e:ui` - Run E2E tests with Playwright UI
+- `npm run test:e2e:headed` - Run E2E tests in headed browser
+
+E2E tests live in `test/e2e/`. The app runs with your current environment (`.env` or defaults), so **visual snapshots reflect your branding** (e.g. `VITE_APP_NAME`, logo). On first run, screenshot snapshots are created under `test/e2e/__snapshots__/` (gitignored). After intentional UI or config changes, update snapshots with:
+
+```bash
+npx playwright test --update-snapshots
+```
+
+Authenticated flows (map, list, remove location, delete account) require a test Supabase project or env; add them as needed with `storageState` and a test account.
 
 ## Available Scripts
 
@@ -190,6 +220,12 @@ team-map/
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build locally
 - `npm run lint` - Run ESLint
+- `npm run test` - Run unit tests (watch)
+- `npm run test:run` - Run unit tests once
+- `npm run test:coverage` - Run unit tests with coverage
+- `npm run test:e2e` - Run E2E tests
+- `npm run test:e2e:ui` - Run E2E tests with UI
+- `npm run test:e2e:headed` - Run E2E tests (headed)
 
 ## License
 
