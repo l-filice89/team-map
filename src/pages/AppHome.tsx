@@ -2,9 +2,19 @@ import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { useAuth } from "@/auth/AuthContext";
 import { WorldMap, WorldMapMarker, TemporaryLocation } from "@/components/WorldMap";
-import { getAllLocations, LocationResponse, createOrUpdateLocation } from "@/lib/locationsApi";
+import { getAllLocations, LocationResponse, createOrUpdateLocation, deleteLocationById } from "@/lib/locationsApi";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, MapPin } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { AlertCircle, MapPin, Trash2 } from "lucide-react";
 import { LocationPicker } from "@/components/LocationPicker";
 import { LocateMe } from "@/components/LocateMe";
 import { CoarsenedPlace } from "@/lib/geocoding";
@@ -26,6 +36,8 @@ export default function AppHome() {
   const [showPicker, setShowPicker] = useState(false);
   const [temporaryLocation, setTemporaryLocation] = useState<TemporaryLocation | null>(null);
   const [showLocateMe, setShowLocateMe] = useState(false);
+  const [showRemoveLocationDialog, setShowRemoveLocationDialog] = useState(false);
+  const [isRemovingLocation, setIsRemovingLocation] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -138,6 +150,50 @@ export default function AppHome() {
     }
   };
 
+  const myLocationId = user
+    ? markers.find((m) => m.user.id === user.id && m.id !== "preview")?.id
+    : undefined;
+
+  const handleRemoveLocation = async () => {
+    if (!myLocationId) return;
+    try {
+      setIsRemovingLocation(true);
+      setError(null);
+      await deleteLocationById(myLocationId);
+      setShowRemoveLocationDialog(false);
+      toast({
+        title: "Location removed",
+        description: "Your location has been permanently removed from the map.",
+      });
+      const locations = await getAllLocations();
+      const transformedMarkers: WorldMapMarker[] = locations.map((loc: LocationResponse) => ({
+        id: loc.id,
+        lat: loc.lat,
+        lng: loc.lng,
+        label: loc.label || "Location",
+        user: {
+          id: loc.user_id,
+          fullName: loc.user?.full_name || loc.user?.email?.split("@")[0] || "User",
+          email: loc.user?.email,
+          avatarUrl: undefined,
+        },
+        updatedAt: loc.created_at,
+      }));
+      setMarkers(transformedMarkers);
+    } catch (err) {
+      console.error("Failed to remove location:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to remove location";
+      setError(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage,
+      });
+    } finally {
+      setIsRemovingLocation(false);
+    }
+  };
+
   // Combine actual markers with preview (if any)
   const displayMarkers: WorldMapMarker[] = [
     ...markers,
@@ -216,8 +272,52 @@ export default function AppHome() {
                 <MapPin className="h-4 w-4" />
                 {showPicker ? "Close" : "Check In"}
               </Button>
+              {myLocationId && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setShowRemoveLocationDialog(true)}
+                  disabled={isRemovingLocation}
+                >
+                  {isRemovingLocation ? (
+                    <span className="flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Removing...
+                    </span>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      Remove my location
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           </div>
+
+          <AlertDialog open={showRemoveLocationDialog} onOpenChange={setShowRemoveLocationDialog}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove your location?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Your location will be permanently removed from the database and will no longer appear on the map. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isRemovingLocation}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleRemoveLocation();
+                  }}
+                  disabled={isRemovingLocation}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Remove location
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Location Picker Card */}
           {showPicker && (
