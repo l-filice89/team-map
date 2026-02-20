@@ -12,7 +12,8 @@ describe("cn", () => {
   });
 
   it("handles conditional falsy", () => {
-    expect(cn("base", false && "hidden", null)).toBe("base");
+    const cond = false;
+    expect(cn("base", cond && "hidden", null)).toBe("base");
   });
 
   it("handles tailwind conflict (later wins)", () => {

@@ -61,7 +61,7 @@ describe("ProtectedRoute", () => {
         displayName: "User",
         avatarUrl: "",
       },
-      session: {} as any,
+      session: {} as import("@supabase/supabase-js").Session,
       loading: false,
       authError: null,
       signInWithGoogle: vi.fn(),

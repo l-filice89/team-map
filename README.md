@@ -21,7 +21,7 @@ A white-label web app for teams to view and share their work locations on an int
 
 ## Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 20.19+ and npm (required for ESLint 10)
 - A Supabase account
 - A Vercel account (for deployment)
 
@@ -82,6 +82,11 @@ Replace `public/logo.svg` and `public/favicon.ico` with your own assets, or set 
 
 - **Never commit `.env`.** It is gitignored; use `.env.example` as the template.
 - **Never put the Supabase service role key in the frontend or in any `VITE_*` variable.** The frontend uses only the anon (publishable) key. The service role key is used only in Edge Functions via `Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")`, which Supabase injects at runtime.
+
+## Dependencies / npm audit
+
+- The project uses **ESLint 10** and **Vitest 4** for linting and testing. Run `npm audit` periodically.
+- As of the last audit, **9 dev-only vulnerabilities** (ajv, minimatch in the ESLint/typescript-eslint chain) may still be reported until upstream packages update their dependencies; these do not affect the production build or runtime. All previously reported runtime-related issues (e.g. esbuild in the test runner) have been addressed by the Vitest 4 upgrade.
 
 ## Supabase Setup
 
@@ -254,7 +259,7 @@ Husky runs hooks on commit and push. After `npm install`, hooks are installed au
 
 ## Dependency security
 
-Run `npm audit` periodically. Some advisories require major upgrades (e.g. ESLint 10, typescript-eslint 8.x, Vitest 4) and are planned for a follow-up; apply `npm audit fix` for non-breaking fixes.
+Run `npm audit` periodically. The project already uses ESLint 10 and Vitest 4 to address previously reported runtime and high-severity issues. Any remaining advisories (e.g. dev-only ajv/minimatch in the lint tooling) are documented in the **Dependencies / npm audit** section above and do not affect the production build; apply `npm audit fix` for non-breaking fixes when available.
 
 ## License
 
