@@ -1,0 +1,10 @@
+# Block direct pushes to main
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [ "$remote_ref" = "refs/heads/main" ]; then
+    echo "Direct pushes to main are disabled. Use develop or a feature branch."
+    exit 1
+  fi
+done
+
+npm run test:run
+npm run test:e2e

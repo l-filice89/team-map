@@ -214,11 +214,21 @@ npx playwright test --update-snapshots
 
 Authenticated flows (map, list, remove location, delete account) require a test Supabase project or env; add them as needed with `storageState` and a test account.
 
+## Git hooks (Husky)
+
+Husky runs hooks on commit and push. After `npm install`, hooks are installed automatically.
+
+- **Pre-commit:** Runs lint (ESLint) and format (Prettier) on **staged files only** via lint-staged. Fixes are applied to your staged files; re-stage and commit if needed.
+- **Pre-push:** (1) Blocks the push if the target branch is `main`; (2) runs unit tests (`npm run test:run`); (3) runs E2E tests (`npm run test:e2e`). Playwright starts the dev server automatically for E2E.
+- **Branch rule:** Direct pushes to `main` are disabled by the hook. Use `develop` or feature branches and merge to `main` via PR/workflow.
+
 ## Available Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build locally
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check formatting with Prettier
 - `npm run lint` - Run ESLint
 - `npm run test` - Run unit tests (watch)
 - `npm run test:run` - Run unit tests once
